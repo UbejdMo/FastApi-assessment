@@ -3,9 +3,15 @@
 This document records the design choices I made while building the library lending API, why I made them, and what I would change with more time. New sections get added as decisions are made in code.
 
 ## Why SQLite over Postgres
+SQLite is build in Python.Nothing to install,nothing to run as a seperate program.
 
-I chose SQLite over Postgres for this assessment. It ships in Python's standard library, requires no separate service to install or run, and supports every feature this assessment needs — including foreign keys, composite primary keys for the M:N association table, and the joins and aggregations the search and reports endpoints require. SQLAlchemy abstracts the engine away, so if the project grew to need concurrent writes or a real production deployment, swapping to Postgres would be a connection-string change plus a migration tool, not a rewrite.
+I figured it out that SQLite handles everything we need for this project's size including:foreign keys,joins,the M:N table,the reports.
 
-## External resources used
 
-- (Running list. Every documentation page, tutorial, and AI prompt used during this assessment is recorded here as it happens.)
+## How I modelled the M:N books ↔ authors relationship
+
+A many-to-many relationship can't be done with a single foreign key on either side. The table books_authors handles that relationship. It has only two columns "book_id" and "author_id",both columns together form the primary key, this prevents the same pair for being listed twice.
+
+I declared book_authors as a SQLAlchemy Table, not a class since it doesn't have extra columns-it's just a link.
+
+Compare with loans:the loans table is also in between two tables, but it has other columns other than the keys,which makes it a real entity,not just a link, so it gets a class.

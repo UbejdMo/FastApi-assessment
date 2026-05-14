@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 
-from app.routers import categories
+from app.routers import authors,categories
 
 app = FastAPI(
     title="Library Lending System",
@@ -9,6 +9,7 @@ app = FastAPI(
 )
 
 app.include_router(categories.router)
+app.include_router(authors.router)
 
 @app.get("/api/v1/health")
 def health():

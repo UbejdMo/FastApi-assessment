@@ -23,6 +23,7 @@ uvicorn app.main:app --reload
 - `GET /api/v1/health` — health check, returns `{"status": "ok", "library": "open"}`
 - `/api/v1/categories` — CRUD for book categories (list, retrieve, create, update, delete)
 - `/api/v1/authors` — CRUD for authors
+- `/api/v1/members` — CRUD for library members
 See `/docs` for the full interactive OpenAPI specification.
 
 The API will be available at `http://127.0.0.1:8000`.

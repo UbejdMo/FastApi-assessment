@@ -19,3 +19,7 @@ Compare with loans:the loans table is also in between two tables, but it has oth
 ## Why I used Alembic for schema management
 
 Without Alembic, this project has no working database. The python models in models.py describe the schema in code but they don't create anything. alembic upgrade head does that.
+
+## Why DELETE on a member or book with active loans returns 409
+
+Deleting a member with active loans would either silently destroy the loan record (if we used CASCADE) or fail with a database-level error (the FK constraint without CASCADE). Neither is acceptable UX.

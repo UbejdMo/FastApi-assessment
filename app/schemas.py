@@ -2,6 +2,10 @@ from typing import Generic, List, Optional, TypeVar
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from datetime import date
+from typing import Generic, List, Optional, TypeVar
+from pydantic import BaseModel, ConfigDict, EmailStr, Field
+
 T = TypeVar("T")
 
 class Paginated(BaseModel, Generic[T]):
@@ -52,4 +56,31 @@ class AuthorUpdate(BaseModel):
 
 class AuthorResponse(AuthorBase):
     id: int
+    model_config = ConfigDict(from_attributes=True)
+
+# ============================================================
+# Members
+# ============================================================
+
+class MemberBase(BaseModel):
+    full_name: str = Field(..., min_length=1, max_length=200)
+    email: EmailStr
+
+
+class MemberCreate(MemberBase):
+    join_date: Optional[date] = None
+    is_active: bool = True
+
+
+class MemberUpdate(BaseModel):
+    full_name: Optional[str] = Field(None, min_length=1, max_length=200)
+    email: Optional[EmailStr] = None
+    join_date: Optional[date] = None
+    is_active: Optional[bool] = None
+
+
+class MemberResponse(MemberBase):
+    id: int
+    join_date: date
+    is_active: bool
     model_config = ConfigDict(from_attributes=True)

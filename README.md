@@ -11,6 +11,9 @@ pip install -r requirements.txt
 # Apply database migrations
 alembic upgrade head
 
+# Seed the database with test data
+python scripts/seed.py
+
 # Run the development server
 uvicorn app.main:app --reload
 ```

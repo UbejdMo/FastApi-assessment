@@ -24,6 +24,7 @@ uvicorn app.main:app --reload
 - `/api/v1/categories` — CRUD for book categories (list, retrieve, create, update, delete)
 - `/api/v1/authors` — CRUD for authors
 - `/api/v1/members` — CRUD for library members
+- `/api/v1/books` — CRUD for books (response embeds category and authors)
 See `/docs` for the full interactive OpenAPI specification.
 
 The API will be available at `http://127.0.0.1:8000`.

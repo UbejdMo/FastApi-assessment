@@ -84,3 +84,34 @@ class MemberResponse(MemberBase):
     join_date: date
     is_active: bool
     model_config = ConfigDict(from_attributes=True)
+
+# ============================================================
+# Books
+# ============================================================
+
+class BookBase(BaseModel):
+    title: str = Field(..., min_length=1, max_length=300)
+    isbn: str = Field(..., min_length=10, max_length=20)
+    total_copies: int = Field(default=1, ge=0)
+    published_year: int = Field(..., ge=1000, le=2100)
+
+
+class BookCreate(BookBase):
+    category_id: int
+    author_ids: List[int] = Field(..., min_length=1)
+
+
+class BookUpdate(BaseModel):
+    title: Optional[str] = Field(None, min_length=1, max_length=300)
+    isbn: Optional[str] = Field(None, min_length=10, max_length=20)
+    total_copies: Optional[int] = Field(None, ge=0)
+    published_year: Optional[int] = Field(None, ge=1000, le=2100)
+    category_id: Optional[int] = None
+    author_ids: Optional[List[int]] = Field(None, min_length=1)
+
+
+class BookResponse(BookBase):
+    id: int
+    category: CategoryResponse
+    authors: List[AuthorResponse]
+    model_config = ConfigDict(from_attributes=True)

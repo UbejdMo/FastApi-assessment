@@ -23,3 +23,10 @@ Without Alembic, this project has no working database. The python models in mode
 ## Why DELETE on a member or book with active loans returns 409
 
 Deleting a member with active loans would either silently destroy the loan record (if we used CASCADE) or fail with a database-level error (the FK constraint without CASCADE). Neither is acceptable UX.
+
+## How I implemented the search endpoint to avoid N+1 queries
+
+N+1 happens when you fetch a parent list (e.g., 20 books) and then access a related collection (e.g., book.authors) per item — triggering one extra query per item. 20 books → 1 + 20 = 21 queries instead of 2.
+I avoid N+1 with two SQLAlchemy options:
+    joinedload(Book.category) 
+    selectinload(Book.authors) 

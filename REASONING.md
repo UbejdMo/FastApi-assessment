@@ -15,3 +15,7 @@ A many-to-many relationship can't be done with a single foreign key on either si
 I declared book_authors as a SQLAlchemy Table, not a class since it doesn't have extra columns-it's just a link.
 
 Compare with loans:the loans table is also in between two tables, but it has other columns other than the keys,which makes it a real entity,not just a link, so it gets a class.
+
+## Why I used Alembic for schema management
+
+Without Alembic, this project has no working database. The python models in models.py describe the schema in code but they don't create anything. alembic upgrade head does that.

@@ -55,7 +55,7 @@ class Book(Base):
     id = Column(Integer,primary_key=True,index=True)
     title = Column(String,nullable=False,index=True)
     isbn = Column(String,unique=True,nullable=False,index=True)
-    category_id = Column(Integer,ForeignKey('category.id'),nullable=False,index=True)
+    category_id = Column(Integer,ForeignKey('categories.id'),nullable=False,index=True)
     total_copies = Column(Integer,nullable=False,default=1)
     published_year = Column(Integer,nullable=False,index=True)
 

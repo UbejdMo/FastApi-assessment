@@ -115,3 +115,22 @@ class BookResponse(BookBase):
     category: CategoryResponse
     authors: List[AuthorResponse]
     model_config = ConfigDict(from_attributes=True)
+
+# ============================================================
+# Loans
+# ============================================================
+
+class LoanCreate(BaseModel):
+    member_id: int
+    book_id: int
+    due_date: date
+
+
+class LoanResponse(BaseModel):
+    id: int
+    member_id: int
+    book_id: int
+    loan_date: date
+    due_date: date
+    return_date: Optional[date] = None
+    model_config = ConfigDict(from_attributes=True)

@@ -1,15 +1,13 @@
+from typing import Literal, Optional
+
 from fastapi import APIRouter, Depends, HTTPException, Query, status
+from sqlalchemy import func
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session, joinedload, selectinload
 
 from app.database import get_db
-from app.models import Author, Book, Category, Loan
-from app.schemas import (
-    BookCreate,
-    BookResponse,
-    BookUpdate,
-    Paginated,
-)
+from app.models import Author, Book, Category, Loan, book_authors
+from app.schemas import BookCreate, BookResponse, BookUpdate, Paginated
 
 router = APIRouter(prefix="/api/v1/books", tags=["books"])
 
@@ -39,6 +37,119 @@ def _resolve_authors(db: Session, author_ids: list[int]) -> list[Author]:
 
 
 # -------- endpoints -------------------------------------------
+
+# GET /api/v1/books/search — filtered, sorted, paginated
+# MUST be declared before /{book_id} or FastAPI will try to parse "search" as an int.
+@router.get("/search", response_model=Paginated[BookResponse])
+def search_books(
+    q: Optional[str] = None,
+    category_id: Optional[int] = None,
+    author_id: Optional[int] = None,
+    available_only: bool = False,
+    published_after: Optional[int] = None,
+    published_before: Optional[int] = None,
+    sort_by: Literal["title", "published_year", "popularity"] = "title",
+    sort_order: Literal["asc", "desc"] = "asc",
+    page: int = Query(1, ge=1),
+    page_size: int = Query(20, ge=1, le=100),
+    db: Session = Depends(get_db),
+):
+    # ── Build the base query, then layer filters on top ──────────────
+
+    query = db.query(Book)
+
+    # Free-text title match (case-insensitive partial match).
+    if q:
+        query = query.filter(Book.title.ilike(f"%{q}%"))
+
+    # Filter by category.
+    if category_id is not None:
+        query = query.filter(Book.category_id == category_id)
+
+    # Filter by author — uses the M:N relationship via a subquery.
+    # We use IN(...) instead of a JOIN to avoid row multiplication
+    # (a book with 3 authors would appear 3 times with a direct JOIN).
+    if author_id is not None:
+        query = query.filter(
+            Book.id.in_(
+                db.query(book_authors.c.book_id)
+                .filter(book_authors.c.author_id == author_id)
+            )
+        )
+
+    # Filter to only books with at least one copy currently available.
+    # available = total_copies > count of active (unreturned) loans for this book.
+    if available_only:
+        active_loans_for_book = (
+            db.query(func.count(Loan.id))
+            .filter(Loan.book_id == Book.id, Loan.return_date.is_(None))
+            .correlate(Book)
+            .scalar_subquery()
+        )
+        query = query.filter(Book.total_copies > active_loans_for_book)
+
+    # Year range filters.
+    if published_after is not None:
+        query = query.filter(Book.published_year >= published_after)
+
+    if published_before is not None:
+        query = query.filter(Book.published_year <= published_before)
+
+    # ── Sort ─────────────────────────────────────────────────────────
+
+    if sort_by == "popularity":
+        # Popularity = total all-time loans for this book (returned + active).
+        # Correlated subquery: runs once per book row, clean with no JOIN issues.
+        total_loans_for_book = (
+            db.query(func.count(Loan.id))
+            .filter(Loan.book_id == Book.id)
+            .correlate(Book)
+            .scalar_subquery()
+        )
+        order_col = (
+            total_loans_for_book.desc()
+            if sort_order == "desc"
+            else total_loans_for_book.asc()
+        )
+    elif sort_by == "published_year":
+        order_col = (
+            Book.published_year.desc()
+            if sort_order == "desc"
+            else Book.published_year.asc()
+        )
+    else:  # default: title
+        order_col = (
+            Book.title.desc()
+            if sort_order == "desc"
+            else Book.title.asc()
+        )
+
+    # ── Count (before pagination, same filters as above) ─────────────
+
+    total = query.count()
+    total_pages = (total + page_size - 1) // page_size if total > 0 else 0
+
+    # ── Items (with eager loading, ordering, and pagination) ──────────
+
+    items = (
+        query
+        .options(
+            joinedload(Book.category),     # M:1 — single JOIN to categories
+            selectinload(Book.authors),    # M:N — one IN-query for all authors
+        )
+        .order_by(order_col)
+        .offset((page - 1) * page_size)
+        .limit(page_size)
+        .all()
+    )
+
+    return Paginated[BookResponse](
+        items=items,
+        page=page,
+        page_size=page_size,
+        total=total,
+        total_pages=total_pages,
+    )
 
 # GET /api/v1/books — list (paginated)
 @router.get("", response_model=Paginated[BookResponse])

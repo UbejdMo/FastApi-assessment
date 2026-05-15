@@ -134,3 +134,23 @@ class LoanResponse(BaseModel):
     due_date: date
     return_date: Optional[date] = None
     model_config = ConfigDict(from_attributes=True)
+
+# ============================================================
+# Reports
+# ============================================================
+
+class TopBorrowerItem(BaseModel):
+    id: int
+    full_name: str
+    email: str
+    total_loans: int
+    model_config = ConfigDict(from_attributes=True)
+
+
+class OverdueLoanItem(BaseModel):
+    loan_id: int
+    member_name: str
+    book_title: str
+    due_date: date
+    days_overdue: int
+    model_config = ConfigDict(from_attributes=True)

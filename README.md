@@ -27,6 +27,8 @@ uvicorn app.main:app --reload
 - `/api/v1/books` — CRUD for books (response embeds category and authors)
 - `/api/v1/loans` — borrow a book, return a book, list loans with filters
 - `GET /api/v1/books/search` — filtered, sorted, paginated book search
+- `GET /api/v1/reports/top-borrowers` — top N members by total loans
+- `GET /api/v1/reports/overdue-loans` — all currently overdue loans
 See `/docs` for the full interactive OpenAPI specification.
 
 The API will be available at `http://127.0.0.1:8000`.

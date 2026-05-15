@@ -4,27 +4,25 @@ A FastAPI backend for a small library that lends physical books to registered me
 
 ## Setup
 
-```bash
-# 1. Create and activate a virtual environment
-python -m venv .venv
-source .venv/bin/activate          # Windows Git Bash: source .venv/Scripts/activate
-                                   # Windows PowerShell: .venv\Scripts\Activate.ps1
+> **Windows users: run these in Command Prompt (CMD), not Git Bash.**
 
-# 2. Install dependencies
+```cmd
+:: 1. Create and activate a virtual environment
+python -m venv .venv
+.venv\Scripts\activate
+
+:: Linux / macOS: source .venv/bin/activate
+
+:: 2. Install dependencies
 pip install -r requirements.txt
 
-# 3. Apply database migrations
+:: 3. Apply database migrations
 alembic upgrade head
 
-# 4. Seed the database with test data
+:: 4. Seed the database with test data
 python scripts/seed.py
 
-# 5. Set the API key (required for write operations)
-export API_KEY=dev-secret-key      # Linux/macOS
-$env:API_KEY="dev-secret-key"      # Windows PowerShell
-set API_KEY=dev-secret-key         # Windows CMD
-
-# 6. Run the development server
+:: 5. Run the development server
 uvicorn app.main:app --reload
 ```
 
@@ -33,7 +31,7 @@ Interactive docs (Swagger UI) at `http://127.0.0.1:8000/docs`.
 
 ## Run tests
 
-```bash
+```cmd
 pytest tests/ -v
 ```
 
@@ -43,7 +41,18 @@ Tests use an in-memory SQLite database and never touch `library.db`.
 
 All `POST`, `PATCH`, and `DELETE` endpoints require an `X-API-Key` request header compared against the `API_KEY` environment variable. `GET` endpoints are open with no key required.
 
-If `API_KEY` is not set, the server defaults to `dev-secret-key` (development only).
+If `API_KEY` is not set, the server defaults to `dev-secret-key` (development only — not safe for production).
+
+Set a custom key before starting the server:
+
+```cmd
+:: Windows CMD
+set API_KEY=your-secret-key
+uvicorn app.main:app --reload
+
+:: Linux / macOS: export API_KEY=your-secret-key
+:: Windows PowerShell: $env:API_KEY="your-secret-key"
+```
 
 A missing or wrong key returns `401 Unauthorized`.
 

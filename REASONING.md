@@ -38,3 +38,15 @@ Search tests: each filter in isolation, then together (composition), pagination 
 Used in-memory SQLite with StaticPool so tests run fast, never touch the real database, and isolate cleanly between test functions.
 
 Each test function is independent — tables are created before the test and dropped after. No test depends on another.
+
+## Scope choices: what I finished, what I cut, and why
+
+Finished: all 4 CRUD resources, loans, search, reports, loan history, auth, Alembic, tests
+
+Cut: Docker/docker-compose — explicitly optional in the brief, prioritised all required endpoints over optional packaging
+
+With more time: Docker, broader test coverage, more edge-case tests
+
+## External Resources section
+
+Claude (Anthropic) AI assistant — used as a guided walkthrough throughout the project. All code was written and verified step by step.

@@ -1,7 +1,3 @@
-from typing import Generic, List, Optional, TypeVar
-
-from pydantic import BaseModel, ConfigDict, Field
-
 from datetime import date
 from typing import Generic, List, Optional, TypeVar
 from pydantic import BaseModel, ConfigDict, EmailStr, Field
@@ -153,4 +149,13 @@ class OverdueLoanItem(BaseModel):
     book_title: str
     due_date: date
     days_overdue: int
+    model_config = ConfigDict(from_attributes=True)
+
+class LoanHistoryItem(BaseModel):
+    loan_id: int
+    member_id: int
+    member_name: str
+    loan_date: date
+    due_date: date
+    return_date: Optional[date] = None
     model_config = ConfigDict(from_attributes=True)

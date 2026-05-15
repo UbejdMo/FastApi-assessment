@@ -29,6 +29,7 @@ uvicorn app.main:app --reload
 - `GET /api/v1/books/search` — filtered, sorted, paginated book search
 - `GET /api/v1/reports/top-borrowers` — top N members by total loans
 - `GET /api/v1/reports/overdue-loans` — all currently overdue loans
+- `GET /api/v1/books/{id}/loan-history` — paginated loan history per book
 See `/docs` for the full interactive OpenAPI specification.
 
 The API will be available at `http://127.0.0.1:8000`.

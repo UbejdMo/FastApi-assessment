@@ -6,8 +6,8 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session, joinedload, selectinload
 
 from app.database import get_db
-from app.models import Author, Book, Category, Loan, book_authors
-from app.schemas import BookCreate, BookResponse, BookUpdate, Paginated
+from app.models import Author, Book, Category, Loan,Member, book_authors
+from app.schemas import BookCreate, BookResponse, BookUpdate,LoanHistoryItem, Paginated
 
 router = APIRouter(prefix="/api/v1/books", tags=["books"])
 
@@ -260,6 +260,59 @@ def update_book(book_id: int, payload: BookUpdate, db: Session = Depends(get_db)
     db.refresh(book)
     return book
 
+# GET /api/v1/books/{id}/loan-history — paginated loan history for one book
+@router.get("/{book_id}/loan-history", response_model=Paginated[LoanHistoryItem])
+def loan_history(
+    book_id: int,
+    page: int = Query(1, ge=1),
+    page_size: int = Query(20, ge=1, le=100),
+    db: Session = Depends(get_db),
+):
+    # 404 if book doesn't exist.
+    if db.get(Book, book_id) is None:
+        raise HTTPException(status_code=404, detail="Book not found")
+
+    # Count total loans for this book (no JOIN needed — just filter on Loan).
+    total = db.query(Loan).filter(Loan.book_id == book_id).count()
+    total_pages = (total + page_size - 1) // page_size if total > 0 else 0
+
+    # Fetch the page — JOIN to Member to include member_name on each row.
+    rows = (
+        db.query(
+            Loan.id.label("loan_id"),
+            Loan.member_id,
+            Member.full_name.label("member_name"),
+            Loan.loan_date,
+            Loan.due_date,
+            Loan.return_date,
+        )
+        .join(Member, Member.id == Loan.member_id)
+        .filter(Loan.book_id == book_id)
+        .order_by(Loan.loan_date.desc())               # most recent first
+        .offset((page - 1) * page_size)
+        .limit(page_size)
+        .all()
+    )
+
+    items = [
+        LoanHistoryItem(
+            loan_id=row.loan_id,
+            member_id=row.member_id,
+            member_name=row.member_name,
+            loan_date=row.loan_date,
+            due_date=row.due_date,
+            return_date=row.return_date,
+        )
+        for row in rows
+    ]
+
+    return Paginated[LoanHistoryItem](
+        items=items,
+        page=page,
+        page_size=page_size,
+        total=total,
+        total_pages=total_pages,
+    )
 
 # DELETE /api/v1/books/{id}
 @router.delete("/{book_id}", status_code=status.HTTP_204_NO_CONTENT)

@@ -14,9 +14,41 @@ alembic upgrade head
 # Seed the database with test data
 python scripts/seed.py
 
+```bash
+# Set the API key (required for write operations)
+export API_KEY=your-secret-key     # Linux/macOS
+$env:API_KEY="your-secret-key"     # Windows PowerShell
+
 # Run the development server
 uvicorn app.main:app --reload
 ```
+## API key
+
+All `POST`, `PATCH`, and `DELETE` endpoints require an `X-API-Key` header. `GET` endpoints are open.
+
+Set the key via the `API_KEY` environment variable before starting the server:
+
+```bash
+# Linux / macOS
+export API_KEY=your-secret-key
+uvicorn app.main:app --reload
+
+# Windows PowerShell
+$env:API_KEY="your-secret-key"
+uvicorn app.main:app --reload
+
+# Windows CMD
+set API_KEY=your-secret-key
+uvicorn app.main:app --reload
+```
+
+If `API_KEY` is not set, the server defaults to `dev-secret-key` (development only — not safe for production).
+
+To test a protected endpoint, include the header:
+```
+X-API-Key: your-secret-key
+```
+In the Swagger UI at `/docs`, use the **Authorize** button (top right) to set the key once for all requests.
 
 ## Endpoints
 

@@ -30,3 +30,11 @@ N+1 happens when you fetch a parent list (e.g., 20 books) and then access a rela
 I avoid N+1 with two SQLAlchemy options:
     joinedload(Book.category) 
     selectinload(Book.authors) 
+## How I structured the test suite
+Loan tests: borrow flow (201), inactive member (400), no copies (409), return (200), double return (409), missing key (401)
+
+Search tests: each filter in isolation, then together (composition), pagination shape, page-beyond-total edge case, and sort ordering.
+
+Used in-memory SQLite with StaticPool so tests run fast, never touch the real database, and isolate cleanly between test functions.
+
+Each test function is independent — tables are created before the test and dropped after. No test depends on another.

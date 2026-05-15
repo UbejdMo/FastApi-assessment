@@ -50,6 +50,9 @@ X-API-Key: your-secret-key
 ```
 In the Swagger UI at `/docs`, use the **Authorize** button (top right) to set the key once for all requests.
 
+# Run the test suite
+pytest tests/ -v
+
 ## Endpoints
 
 - `GET /api/v1/health` — health check, returns `{"status": "ok", "library": "open"}`
